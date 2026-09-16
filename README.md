@@ -30,4 +30,4 @@ Estes workflows são **pontos de partida**: os nós de HTTP Request para serviç
 HeyGen, Apify, agregadores de redes sociais etc. usam URLs de exemplo — troque pela
 documentação oficial de cada API e pelas suas credenciais antes de ativar o workflow.
 
-— @thecleadsacademy
+— @techleadsacademy
