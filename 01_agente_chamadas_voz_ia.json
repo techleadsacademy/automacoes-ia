@@ -1,0 +1,264 @@
+{
+  "name": "1 - Agente de chamadas de voz com IA",
+  "nodes": [
+    {
+      "id": "fac9ea1b-86e2-452e-9325-2090d16a0355",
+      "name": "Webhook (chamada recebida)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "path": "chamada-recebida",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "notes": "Recebe o evento de chamada do seu provedor de telefonia (Twilio, Vonage etc.)"
+    },
+    {
+      "id": "0a45f71e-0129-4494-bf6a-34aa7a678741",
+      "name": "Agente de Chamadas (OpenAI Realtime)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "resource": "assistant",
+        "operation": "message",
+        "prompt": "Você é um atendente de voz da recepção. Responda dúvidas sobre disponibilidade, agende horários e encaminhe para um humano quando necessário."
+      },
+      "notes": "Configure a credencial da OpenAI. Este nó representa a chamada ao modelo em tempo real."
+    },
+    {
+      "id": "8862a344-d34f-4f5c-9e5f-f44e7ac3deb8",
+      "name": "Roteador de Intenção",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "outputKey": "disponibilidade",
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json.intent}}",
+                    "value2": "disponibilidade"
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "duvida",
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json.intent}}",
+                    "value2": "duvida"
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "humano",
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{$json.intent}}",
+                    "value2": "humano"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "notes": "Direciona a conversa com base na intenção identificada pelo agente."
+    },
+    {
+      "id": "72417876-6d30-40f0-a3db-33429efed144",
+      "name": "Verificar Disponibilidade",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        180
+      ],
+      "parameters": {
+        "operation": "getAll",
+        "calendar": ""
+      },
+      "notes": "Consulta a agenda antes de confirmar horário."
+    },
+    {
+      "id": "a48a5013-4cbd-4f04-a8c3-beceafc0c5a7",
+      "name": "Agendar (Google Calendar)",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        180
+      ],
+      "parameters": {
+        "operation": "create",
+        "calendar": ""
+      }
+    },
+    {
+      "id": "68d4b4b9-c2ad-45b2-bb18-d5c07f6c5b4a",
+      "name": "Responder Dúvida (AI Assistant)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "resource": "assistant",
+        "operation": "message"
+      }
+    },
+    {
+      "id": "782a3c84-026b-43cd-b449-73a8d82ae172",
+      "name": "Enviar Confirmação (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "operation": "send",
+        "subject": "Confirmação do seu agendamento"
+      }
+    },
+    {
+      "id": "a441b245-bd53-4a17-bed9-f4bf995d6005",
+      "name": "Encaminhar para Humano",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        420
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "encaminhado_humano"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a651397a-8aa5-463f-b610-d5aadca0c3fe",
+      "name": "Criar Contato no CRM (HubSpot)",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        420
+      ],
+      "parameters": {
+        "resource": "contact",
+        "operation": "create"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook (chamada recebida)": {
+      "main": [
+        [
+          {
+            "node": "Agente de Chamadas (OpenAI Realtime)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de Chamadas (OpenAI Realtime)": {
+      "main": [
+        [
+          {
+            "node": "Roteador de Intenção",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteador de Intenção": {
+      "main": [
+        [
+          {
+            "node": "Verificar Disponibilidade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Dúvida (AI Assistant)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar para Humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Disponibilidade": {
+      "main": [
+        [
+          {
+            "node": "Agendar (Google Calendar)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Dúvida (AI Assistant)": {
+      "main": [
+        [
+          {
+            "node": "Enviar Confirmação (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar para Humano": {
+      "main": [
+        [
+          {
+            "node": "Criar Contato no CRM (HubSpot)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

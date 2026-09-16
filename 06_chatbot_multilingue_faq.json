@@ -1,0 +1,103 @@
+{
+  "name": "6 - Chatbot multilíngue de FAQ",
+  "nodes": [
+    {
+      "id": "9db5613e-4faa-4e25-ae88-d071be345252",
+      "name": "Mensagem do Usuário (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "path": "chat-faq",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "b9e69774-7116-4988-974a-f4922f92a134",
+      "name": "Detecção de Idioma (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Detecte o idioma desta mensagem e responda só com o código do idioma: {{$json.mensagem}}"
+      }
+    },
+    {
+      "id": "341bbcee-b52e-4dd2-a539-87be230e28d6",
+      "name": "GPT - Resposta de FAQ",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Responda a dúvida do cliente no idioma {{$json.idioma}}, usando a base de conhecimento de FAQ da empresa: {{$json.mensagem}}"
+      }
+    },
+    {
+      "id": "596111ba-af24-49be-b3fb-843f904507aa",
+      "name": "Enviar Resposta (Respond to Webhook)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Mensagem do Usuário (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Detecção de Idioma (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detecção de Idioma (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "GPT - Resposta de FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT - Resposta de FAQ": {
+      "main": [
+        [
+          {
+            "node": "Enviar Resposta (Respond to Webhook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

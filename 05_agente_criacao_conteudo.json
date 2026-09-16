@@ -1,0 +1,208 @@
+{
+  "name": "5 - Agente de criação de conteúdo (repete automaticamente)",
+  "nodes": [
+    {
+      "id": "84f2ffd2-89cd-4e19-9463-593be0cb74e4",
+      "name": "Agendamento (diário)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "08a4290e-33e9-439e-a262-0f5da7e69ff1",
+      "name": "Pesquisa de Tópicos (HTTP/Trends)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.SEU_PROVEDOR_TRENDS.com"
+      }
+    },
+    {
+      "id": "3f607d2d-d0b3-4d67-bc84-55f744a80c85",
+      "name": "Gerar Roteiro (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Escreva um roteiro curto sobre {{$json.topico}}."
+      }
+    },
+    {
+      "id": "4f41d043-efef-4ef2-8bf9-1b93a2acdc0a",
+      "name": "Criar Vídeo (HeyGen/Creatify)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.SEU_PROVEDOR_DE_VIDEO.com/generate",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "7ceb7cad-8e34-422d-a624-9fe8d9a10987",
+      "name": "Adicionar Legendas (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.SEU_PROVEDOR_LEGENDAS.com"
+      }
+    },
+    {
+      "id": "19ae88e5-ffb2-48e1-b6ac-d3be4ff5e68d",
+      "name": "Publicar - TikTok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        180
+      ],
+      "parameters": {
+        "url": "https://api.SEU_AGREGADOR.com/tiktok"
+      }
+    },
+    {
+      "id": "8fe4d40b-6273-4fd2-b445-55b5a89f97f5",
+      "name": "Publicar - Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        260
+      ],
+      "parameters": {
+        "url": "https://api.SEU_AGREGADOR.com/instagram"
+      }
+    },
+    {
+      "id": "5aa60e7c-ae22-4397-bcc0-7305e311953d",
+      "name": "Publicar - YouTube",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        340
+      ],
+      "parameters": {
+        "url": "https://api.SEU_AGREGADOR.com/youtube"
+      }
+    },
+    {
+      "id": "7f962f07-b13a-45fe-b2f0-7e3d10428291",
+      "name": "Publicar - LinkedIn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        420
+      ],
+      "parameters": {
+        "url": "https://api.SEU_AGREGADOR.com/linkedin"
+      }
+    }
+  ],
+  "connections": {
+    "Agendamento (diário)": {
+      "main": [
+        [
+          {
+            "node": "Pesquisa de Tópicos (HTTP/Trends)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pesquisa de Tópicos (HTTP/Trends)": {
+      "main": [
+        [
+          {
+            "node": "Gerar Roteiro (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Roteiro (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Criar Vídeo (HeyGen/Creatify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Vídeo (HeyGen/Creatify)": {
+      "main": [
+        [
+          {
+            "node": "Adicionar Legendas (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adicionar Legendas (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Publicar - TikTok",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Publicar - Instagram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Publicar - YouTube",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Publicar - LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

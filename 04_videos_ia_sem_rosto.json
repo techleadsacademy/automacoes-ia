@@ -1,0 +1,129 @@
+{
+  "name": "4 - Vídeos animados de IA sem rosto",
+  "nodes": [
+    {
+      "id": "7682b4d5-537c-456d-b5f6-5b83899650d2",
+      "name": "Escrever Roteiro (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Escreva um roteiro curto (30s) sobre {{$json.topico}} no formato de vídeo viral."
+      }
+    },
+    {
+      "id": "e81a0472-13cd-405c-8e8c-058d4e64b6bd",
+      "name": "Criar Vídeo sem Rosto (HTTP - HeyGen/Creatify)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.SEU_PROVEDOR_DE_VIDEO.com/generate",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "adb46d86-0588-4a31-b67c-470309efc041",
+      "name": "Aguardar Renderização",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      }
+    },
+    {
+      "id": "7f28f803-abf4-4e82-9924-3a7bd1e5342b",
+      "name": "Publicar (Postagem Automática)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.SEU_AGREGADOR_SOCIAL.com/post",
+        "method": "POST"
+      },
+      "notes": "Use um agregador tipo Blotato/Ayrshare para publicar em vários canais de uma vez."
+    },
+    {
+      "id": "bd3c68d9-9c24-40e8-b025-879ae7cf46ec",
+      "name": "Acompanhar Desempenho (Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "operation": "append"
+      }
+    }
+  ],
+  "connections": {
+    "Escrever Roteiro (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Criar Vídeo sem Rosto (HTTP - HeyGen/Creatify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Vídeo sem Rosto (HTTP - HeyGen/Creatify)": {
+      "main": [
+        [
+          {
+            "node": "Aguardar Renderização",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar Renderização": {
+      "main": [
+        [
+          {
+            "node": "Publicar (Postagem Automática)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publicar (Postagem Automática)": {
+      "main": [
+        [
+          {
+            "node": "Acompanhar Desempenho (Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

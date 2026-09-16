@@ -1,0 +1,127 @@
+{
+  "name": "8 - Gerador de avatar com IA (HeyGen + n8n)",
+  "nodes": [
+    {
+      "id": "ee366a9b-1234-4489-8fb7-076dd8de8cc6",
+      "name": "Input Manual (tema do vídeo)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "53a13831-3316-4ac1-9a05-32dbd3fc415d",
+      "name": "Criar Roteiro (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Escreva um roteiro de 45 segundos sobre {{$json.tema}}."
+      }
+    },
+    {
+      "id": "10eb89f6-dc65-479c-9348-45acd5e5adc2",
+      "name": "Gerar Avatar (HeyGen)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.heygen.com/v2/video/generate",
+        "method": "POST"
+      },
+      "notes": "Configure sua API key da HeyGen em Header Auth."
+    },
+    {
+      "id": "7be89aea-ba49-404d-9bb1-34aa4a6c70f7",
+      "name": "Adicionar Voz e Editar",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      }
+    },
+    {
+      "id": "e25218b5-46da-4982-a1d1-f4c742e74835",
+      "name": "Exportar Vídeo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "method": "GET"
+      }
+    }
+  ],
+  "connections": {
+    "Input Manual (tema do vídeo)": {
+      "main": [
+        [
+          {
+            "node": "Criar Roteiro (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Roteiro (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Gerar Avatar (HeyGen)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Avatar (HeyGen)": {
+      "main": [
+        [
+          {
+            "node": "Adicionar Voz e Editar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adicionar Voz e Editar": {
+      "main": [
+        [
+          {
+            "node": "Exportar Vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

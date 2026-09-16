@@ -1,0 +1,168 @@
+{
+  "name": "2 - IA para geração de leads (B2B)",
+  "nodes": [
+    {
+      "id": "71e80abf-7767-4ac7-8145-0de2f2bad69a",
+      "name": "Agendamento (Schedule Trigger)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6019018f-44aa-4c36-a6db-f0fddc388204",
+      "name": "Captar Leads (Apify)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/YOUR_ACTOR/run-sync-get-dataset-items",
+        "method": "POST"
+      },
+      "notes": "Use um actor do Apify para raspar leads do seu nicho (Google Maps, LinkedIn etc.)."
+    },
+    {
+      "id": "4300246f-0f2e-4efa-8f1f-f902b740a584",
+      "name": "Pesquisar e Enriquecer (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Enriqueça os dados do lead abaixo com um resumo da empresa e possíveis dores: {{$json}}"
+      }
+    },
+    {
+      "id": "2daeb09a-9947-4f11-9ff4-e5984d88af26",
+      "name": "Qualificar Leads (Filter)",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.score}}",
+              "operation": "largerEqual",
+              "value2": 7
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "91f193bc-e999-4807-b1fb-c986fe1728d7",
+      "name": "Enviar Abordagem (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "operation": "send",
+        "subject": "Uma ideia rápida para {{$json.empresa}}"
+      }
+    },
+    {
+      "id": "c1fee37d-acbc-419e-8498-e5eea900839c",
+      "name": "Follow-up (Wait + Scheduler)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "amount": 3,
+        "unit": "days"
+      }
+    }
+  ],
+  "connections": {
+    "Agendamento (Schedule Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Captar Leads (Apify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Captar Leads (Apify)": {
+      "main": [
+        [
+          {
+            "node": "Pesquisar e Enriquecer (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pesquisar e Enriquecer (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Qualificar Leads (Filter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qualificar Leads (Filter)": {
+      "main": [
+        [
+          {
+            "node": "Enviar Abordagem (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Abordagem (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Follow-up (Wait + Scheduler)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

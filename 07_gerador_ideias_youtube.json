@@ -1,0 +1,136 @@
+{
+  "name": "7 - Gerador de ideias virais para YouTube",
+  "nodes": [
+    {
+      "id": "d30c2a14-5f03-4d83-8eb1-0d4b12485d64",
+      "name": "Agendamento (semanal)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4c289a8c-bbdc-411b-b43e-c503eeb93fed",
+      "name": "Buscar Vídeos (YouTube API)",
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "resource": "video",
+        "operation": "search",
+        "query": "={{$json.nicho}}"
+      }
+    },
+    {
+      "id": "a4c0975d-bf78-46e2-8b7b-2fbe7bdfd3ea",
+      "name": "Analisar Conteúdo (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Extraia títulos, palavras-chave e padrões de engajamento destes vídeos: {{$json}}"
+      }
+    },
+    {
+      "id": "34bb9f15-563a-43e4-b6be-c6ce5cadc188",
+      "name": "Gerar Ideias Novas (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Com base na análise acima, gere 10 ideias de vídeo novas para o meu canal."
+      }
+    },
+    {
+      "id": "b3277188-f4bc-4a57-b1d5-9a3a30444e73",
+      "name": "Obter Ideias Acionáveis (Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "operation": "append"
+      }
+    }
+  ],
+  "connections": {
+    "Agendamento (semanal)": {
+      "main": [
+        [
+          {
+            "node": "Buscar Vídeos (YouTube API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Vídeos (YouTube API)": {
+      "main": [
+        [
+          {
+            "node": "Analisar Conteúdo (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisar Conteúdo (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Gerar Ideias Novas (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Ideias Novas (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Obter Ideias Acionáveis (Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "name": "3 - Gerador de Spy de Anúncios UGC com IA",
+  "nodes": [
+    {
+      "id": "b48e4b2e-c19d-45f7-b292-fb5c68470a7c",
+      "name": "Input Manual (link do anúncio)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "684cc231-2fcf-4b89-8b77-89ca4dd036c7",
+      "name": "Analyze Ad (HTTP Request / Scraper)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "url": "={{$json.ad_url}}",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "50ef5740-6ab8-458e-ab9c-d5cf8452aff7",
+      "name": "Get Insights (OpenAI Vision)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "prompt": "Extraia gancho, roteiro e formato deste anúncio."
+      }
+    },
+    {
+      "id": "497bc2cb-706b-4ae5-8209-cd388ee747be",
+      "name": "Generate Prompts (Sora 2)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "prompt": "Gere 5 prompts para o Sora 2 recriando este anúncio com a marca {{$json.marca}}."
+      }
+    },
+    {
+      "id": "a5785ea4-6003-45f5-abd6-b8c837b8622e",
+      "name": "Create UGC (webhook de saída)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "prompts_gerados"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "eb8b5686-f3b7-4c8a-8597-4e5425ad284c",
+      "name": "Output (salvar resultado)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "operation": "append"
+      }
+    }
+  ],
+  "connections": {
+    "Input Manual (link do anúncio)": {
+      "main": [
+        [
+          {
+            "node": "Analyze Ad (HTTP Request / Scraper)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Ad (HTTP Request / Scraper)": {
+      "main": [
+        [
+          {
+            "node": "Get Insights (OpenAI Vision)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Insights (OpenAI Vision)": {
+      "main": [
+        [
+          {
+            "node": "Generate Prompts (Sora 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prompts (Sora 2)": {
+      "main": [
+        [
+          {
+            "node": "Create UGC (webhook de saída)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create UGC (webhook de saída)": {
+      "main": [
+        [
+          {
+            "node": "Output (salvar resultado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
